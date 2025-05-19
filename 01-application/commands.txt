@@ -1,0 +1,2 @@
+docker build -t mclov/cloude_app:v0.0 .
+docker push mclov/cloude_app:v0.0
