@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloude-app
+  namespace: cloude-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cloude-app
+  template:
+    metadata:
+      labels:
+        app: cloude-app
+    spec:
+      containers:
+        - name: cloude-app
+          image: mclov/cloude_app:v0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: AUTHOR
+              value: "Иван Иванов"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      imagePullSecrets:
+        - name: dockerhub-secret
