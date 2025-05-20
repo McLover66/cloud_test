@@ -8,6 +8,7 @@
   template:
     src: webapp.conf.j2
     dest: /etc/nginx/sites-available/webapp.conf
+  notify: Reload NGINX
 
 - name: Enable NGINX site config
   file:

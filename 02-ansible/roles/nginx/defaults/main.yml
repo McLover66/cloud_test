@@ -1,1 +1,2 @@
 nginx_port: 80
+container_count: 3

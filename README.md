@@ -41,12 +41,13 @@
 
 # Задача 3
 
-- Namespace — `intern-app` (для изоляции)
+- Namespace — `intern-app` (для изоляции) 
 - Deployment — 3 реплики приложения `mclov/cloude_app:0.0`
 - Service — NGINX-like балансировка через `ClusterIP` или `NodePort`
 
 ## Команды
 
     kubectl apply -f namespace.yaml
+    kubectl apply -f secret.yaml
     kubectl apply -f deployment.yaml
     kubectl apply -f service.yaml
