@@ -1,0 +1,93 @@
+- name: Simple Docker & NGINX Deployment
+  hosts: webservers
+  become: yes
+  vars:
+    docker_image: "mclov/cloude_app:v0.0"
+    registry_username: "<ВАШ_ДОКЕР_ЛОГИН>"
+    registry_password: "<ВАШ_ДОКЕР_ПАРОЛЬ>"
+    registry_url: "docker.io"
+    container_count: 3
+    app_port: 8000
+
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name: [apt-transport-https, ca-certificates, curl, software-properties-common]
+        state: present
+        update_cache: yes
+
+    - name: Add Docker GPG key and repository
+      shell: |
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+      args:
+        warn: false
+
+    - name: Install Docker CE
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: yes
+
+    - name: Ensure Docker is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Login to Docker Registry
+      docker_login:
+        registry_url: "{{ registry_url }}"
+        username: "{{ registry_username }}"
+        password: "{{ registry_password }}"
+
+    - name: Run 3 WebApp Containers
+      docker_container:
+        name: "webapp_{{ item }}"
+        image: "{{ docker_image }}"
+        restart_policy: always
+        published_ports:
+          - "800{{ item }}:{{ app_port }}"
+        state: started
+      loop: "{{ range(1, container_count + 1) | list }}"
+
+    - name: Install NGINX
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Configure NGINX for Load Balancing
+      copy:
+        dest: /etc/nginx/sites-available/webapp.conf
+        content: |
+          upstream webapp_backend {
+              server 127.0.0.1:8001;
+              server 127.0.0.1:8002;
+              server 127.0.0.1:8003;
+          }
+          server {
+              listen 80;
+              location / {
+                  proxy_pass http://webapp_backend;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+              }
+          }
+
+    - name: Enable NGINX Config
+      file:
+        src: /etc/nginx/sites-available/webapp.conf
+        dest: /etc/nginx/sites-enabled/webapp.conf
+        state: link
+        force: yes
+
+    - name: Remove Default NGINX Config
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Restart NGINX
+      service:
+        name: nginx
+        state: restarted
