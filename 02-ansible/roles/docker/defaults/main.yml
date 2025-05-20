@@ -1,0 +1,6 @@
+docker_image: "mclov/cloude_app:v0.0"
+registry_username: "<ВАШ_ДОКЕР_ЛОГИН>"
+registry_password: "<ВАШ_ДОКЕР_ПАРОЛЬ>"
+registry_url: "docker.io"
+container_count: 3
+app_port: 8000

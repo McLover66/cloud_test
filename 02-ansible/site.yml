@@ -1,0 +1,7 @@
+- name: Деплой на ВМ
+  hosts: webservers
+  become: yes
+
+  roles:
+    - docker
+    - nginx
